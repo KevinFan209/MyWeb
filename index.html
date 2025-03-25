@@ -36,7 +36,7 @@
     
         // 5. load .glb model
         const loader = new THREE.GLTFLoader();
-        loader.load('sharkshark.glb', function(gltf) {
+        loader.load('assets/sharkshark.glb', function(gltf) {
             scene.add(gltf.scene);
             gltf.scene.position.set(0, 0, 0);
         }, undefined, function(error) {
