@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>找飯店Pangolin - 首頁</title>
+  <style>
+    body, html {
+        height: 100%;
+        margin: 0;
+    }
+    .centered-text {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;      
+        font-size: 144px;
+        font-weight: bold;
+        position: relative;
+        font-family: "Noto Sans T Chinese", sans-serif;
+    }
+    .homebutton{
+        position: fixed;
+        top: 30pt;
+        left: 60pt;
+        font-size: 36pt;
+        font-weight: bold;
+        font-family: "Noto Sans T Chinese", sans-serif;
+        z-index: 9999;
+    }
+    .top-right{
+        position:absolute;
+        top: 30pt;
+        right: 60pt;      
+        gap: 20pt;              
+        display: flex;  
+        font-family: "Noto Sans T Chinese", sans-serif;
+    }
+    .box {
+        width: 160px;
+        height: 80px;        
+        border: 1px solid black;
+        border-radius: 20px;
+        background-color: white;
+        font-weight: bold;        
+        justify-content: center;
+        align-items: center;     
+        display: flex;  
+        font-size: 30pt; 
+        font-family: "Noto Sans T Chinese", sans-serif;
+    }
+    .centered-text::after {
+        content: "";
+        position: absolute;
+        display: flex;
+        bottom: 40%;
+        width: 400pt;
+        height: 5px;
+        background-color: black;
+    }
+    .dropdown {
+        all: unset;
+        width: 160px;
+        height: 80px;
+        font-size: 40px;
+        font-weight: bold;
+        font-family: "Noto Sans T Chinese", sans-serif;
+        border: none;
+        background: transparent;
+        appearance: none;
+        text-align: center;
+        align-items: center;
+    }
+    .no-underline{
+        text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="centered-text" style="color: rgb(64, 64, 255);">Pangolin
+  </div>
+  <div class="homebutton">
+    <a class="no-underline" href="homepage without login.html" style="color: rgb(64, 64, 255);">Pangolin</a>
+  </div>
+  <div class="top-right">
+    <div class="box" style="color: rgb(64, 64, 255);">語言</div>
+    <a class="box no-underline" href="login.html" style="color: rgb(64, 64, 255);">登入</a>
+    <div class="box">
+        <select class="dropdown" onchange="goToLink(this)" style="color: rgb(64, 64, 255);">
+            <option>菜單</option>
+            <option value="help.html">幫助</option>
+            <option value="about.html">關於</option>            
+        </select>
+    </div>
+  </div>
+
+<script>    
+    function goToLink(select) {
+        const url = select.value;
+            if (url) {
+                window.location.href = url;
+            }
+        }
+</script>
+</body>
+</html>

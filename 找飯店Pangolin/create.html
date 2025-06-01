@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>找飯店Pangolin - 創建新帳號</title>
+    <style>
+        .centered-text {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;      
+            font-size: 72px;
+            font-weight: bold;
+            position: relative;
+            font-family: "Noto Sans T Chinese", sans-serif;
+        }
+        .homebutton{
+            position: fixed;
+            top: 30pt;
+            left: 60pt;
+            font-size: 36pt;
+            font-weight: bold;
+            font-family: "Noto Sans T Chinese", sans-serif;
+            z-index: 9999;
+        }
+    </style>
+</head>
+    <body>
+        <div class="homebutton">
+            <a class="no-underline" href="homepage without login.html" style="color: rgb(64, 64, 255); text-decoration: none;">Pangolin</a>
+        </div><div class="centered-text" style="color: rgb(5, 5, 5); Top: 100pt">Welcome to Pangolin
+        </div>
+
+        <div style="
+            position: relative;
+            display: flex;
+            justify-content: center;
+            top: 140pt;
+            height: 500pt;
+            ">
+            <form onsubmit="return validateForm()
+            ">
+                <div style="margin-bottom: 15px;">
+                <label for="email"></label><br>
+                <input type="text" id="email" name="email" placeholder="請輸入電子郵件:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                <label for="phone"></label><br>
+                <input type="text" id="phone" name="phone" placeholder="請輸入電話:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                <label for="pw_new"></label><br>
+                <input type="pw_new" id="pw_new" name="pw_new" placeholder="請輸入新密碼:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                <label for="pw_new_verify"></label><br>
+                <input type="pw_new_verify" id="pw_new_verify" name="pw_new_verify" placeholder="請再次輸入新密碼:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <button type="submit" style="position: relative; padding: 16px 20px; width: auto; font-size: 13pt; border-radius: 5pt; display: block; margin: 0 auto; top: 15pt;">創建帳戶</button>
+            </form>
+        </div>
+        
+        <div style="
+            position: absolute; 
+            top: 95%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            ">
+            <a href="login.html" style="color: black;">已有帳號?點我登入</a>
+        </div>
+
+        <script>            
+            function validateForm() {
+                const email = document.getElementById("email").value.trim();
+                const phone = document.getElementById("phone").value.trim();
+                const pw_new = document.getElementById("pw_new").value.trim();
+                const pw_new_verify = document.getElementById("pw_new_verify").value.trim();
+                if (!email || !phone || !pw_new || !pw_new_verify) {                     
+                        alert("請輸入帳號、電話和密碼！");
+                        return false;                   
+                    }
+                else{
+                        if (pw_new != pw_new_verify){
+                            alert("再次輸入的密碼必須與新密碼相同");
+                            return false;
+                        }
+                        else{
+                            window.location.href = "login.html"; 
+                            return false;
+                        }
+                }                
+            }
+        </script>
+
+    </body>
+</html>

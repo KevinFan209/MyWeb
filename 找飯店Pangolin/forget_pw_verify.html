@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>找飯店Pangolin - 忘記密碼</title>
+    <style>
+        .centered-text {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;      
+            font-size: 72px;
+            font-weight: bold;
+            position: relative;
+            font-family: "Noto Sans T Chinese", sans-serif;
+        }
+        .homebutton{
+            position: fixed;
+            top: 30pt;
+            left: 60pt;
+            font-size: 36pt;
+            font-weight: bold;
+            font-family: "Noto Sans T Chinese", sans-serif;
+            z-index: 9999;
+        }
+    </style>
+</head>
+    <body>
+        <div class="homebutton">
+            <a class="no-underline" href="homepage without login.html" style="color: rgb(64, 64, 255); text-decoration: none;">Pangolin</a>
+        </div><div class="centered-text" style="color: rgb(5, 5, 5); Top: 100pt">重設密碼
+        </div>
+
+        <div style="
+            position: relative;
+            display: flex;
+            justify-content: center;
+            top: 140pt;
+            height: 400pt;
+            ">
+            <form onsubmit="return validateForm()
+            ">
+
+                <div style="
+                    width: auto; 
+                    font-size: 13pt;
+                    text-align: center;
+                    ">請輸入電子郵件的驗證碼                
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <button id="sendCodeBtn" onclick="sendCode()" style="
+                                                                    display: block; 
+                                                                    position: relative; 
+                                                                    left: 105%; 
+                                                                    top: 65pt;
+                                                                    border-radius: 10pt;
+                                                                    padding: 10pt;
+                                                                    font-size: 12pt;
+                                                                    ">點擊我傳送驗證碼
+                    </button>
+
+                    <label for="verify_code"></label><br>
+                    <input type="text" id="verify_code" name="verify_code" placeholder="驗證碼:"
+                        style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">                    
+                </div>
+                
+
+                <script>
+                    let countdown = 2;
+                    let timer;
+
+                    function sendCode() {
+                        const btn = document.getElementById("sendCodeBtn");
+
+                        // 停用按鈕
+                        btn.disabled = true;
+                        btn.style.backgroundColor = "#ccc"; // 可選：變灰
+                        btn.textContent = ` ${countdown} 秒後可重新發送`;
+
+                        timer = setInterval(() => {
+                        countdown--;
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            btn.disabled = false;
+                            btn.style.backgroundColor = ""; // 恢復原來顏色
+                            btn.textContent = "重新發送驗證碼";
+                            countdown = 2; // 重置倒數
+                        } else {
+                            btn.textContent = ` ${countdown} 秒後可重新發送`;
+                        }
+                        }, 1000);
+                    }
+                </script>
+
+                <button type="submit" style="position: relative; padding: 8px 16px; width: 75pt; font-size: 13pt; border-radius: 5pt; display: block; margin: 0 auto; top: 15pt;">Enter</button>
+            </form>
+        </div>
+        
+        <div style="
+            position: absolute; 
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            ">
+            <a href="login.html" style="color: black;">已有帳號?點我登入</a>
+        </div>
+
+        <script>            
+            function validateForm() {
+                const verify_code = document.getElementById("verify_code").value.trim();
+                if (!verify_code) {
+                alert("請輸入驗證碼！");
+                return false;
+                }
+                window.location.href = "input_pw_new.html"; // ← 換成你要跳轉的網址
+                return false;
+            }
+        </script>
+
+    </body>
+</html>

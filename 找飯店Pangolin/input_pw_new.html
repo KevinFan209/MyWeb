@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>找飯店Pangolin - 驗證</title>
+    <style>
+        .centered-text {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;      
+            font-size: 36px;
+            position: relative;
+            font-family: "Noto Sans T Chinese", sans-serif;
+        }
+        .homebutton{
+            position: fixed;
+            top: 30pt;
+            left: 60pt;
+            font-size: 36pt;
+            font-weight: bold;
+            font-family: "Noto Sans T Chinese", sans-serif;
+            z-index: 9999;
+        }
+    </style>
+</head>
+    <body>
+        <div class="homebutton">
+            <a class="no-underline" href="homepage without login.html" style="color: rgb(64, 64, 255); text-decoration: none;">Pangolin</a>
+        </div><div class="centered-text" style="color: rgb(5, 5, 5); Top: 120pt;">請輸入新密碼
+        </div>
+
+        <div style="
+            position: relative;
+            display: flex;
+            justify-content: center;
+            top: 140pt;
+            height: 500pt;
+            ">
+            <form onsubmit="return validateForm()
+            ">
+                <!-- 帳號欄位 -->
+                <div style="margin-bottom: 15px;">
+                <label for="pw_new"></label><br>
+                <input type="pw_new" id="pw_new" name="pw_new" placeholder="新密碼:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <!-- 密碼欄位 -->
+                <div style="margin-bottom: 15px;">
+                <label for="pw_new_again"></label><br>
+                <input type="pw_new_again" id="pw_new_again" name="pw_new_again" placeholder="再次輸入新密碼:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <button type="submit" style="position: relative; padding: 8px 16px; width: 75pt; font-size: 13pt; border-radius: 5pt; display: block; margin: 0 auto; top: 15pt;">Enter</button>
+            </form>
+        </div>
+
+        <script>            
+            function validateForm() {
+                const pw_new = document.getElementById("pw_new").value.trim();
+                const pw_new_again = document.getElementById("pw_new_again").value.trim();
+                if (!pw_new) {
+                    if (!pw_new_again){
+                        alert("請輸入新密碼！");
+                        return false;
+                    }
+                    else{
+                        alert("請不要只輸入下面的再次輸入密碼！");
+                        return false;
+                    }
+                }
+                else{
+                    if (!pw_new_again){
+                        alert("請再次輸入新密碼！");
+                        return false;
+                    }
+                    else{
+                        if (pw_new==pw_new_again){
+                            window.location.href = "login.html"; // ← 換成你要跳轉的網址
+                            return false;
+                        }
+                        else{
+                            alert("密碼不相同，請再試一次！");
+                            return false;
+                        }
+                    }
+                }                
+            }
+        </script>
+
+    </body>
+</html>

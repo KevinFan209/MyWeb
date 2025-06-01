@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>找飯店Pangolin - 登入</title>
+    <style>
+        .centered-text {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;      
+            font-size: 72px;
+            font-weight: bold;
+            position: relative;
+            font-family: "Noto Sans T Chinese", sans-serif;
+        }
+        .homebutton{
+            position: fixed;
+            top: 30pt;
+            left: 60pt;
+            font-size: 36pt;
+            font-weight: bold;
+            font-family: "Noto Sans T Chinese", sans-serif;
+            z-index: 9999;
+        }
+    </style>
+</head>
+    <body>
+        <div class="homebutton">
+            <a class="no-underline" href="homepage without login.html" style="color: rgb(64, 64, 255); text-decoration: none;">Pangolin</a>
+        </div><div class="centered-text" style="color: rgb(5, 5, 5); Top: 100pt">Welcome to Pangolin
+        </div>
+
+        <div style="
+            position: relative;
+            display: flex;
+            justify-content: center;
+            top: 140pt;
+            height: 500pt;
+            ">
+            <form onsubmit="return validateForm()
+            ">
+                <!-- 帳號欄位 -->
+                <div style="margin-bottom: 15px;">
+                <label for="account"></label><br>
+                <input type="text" id="account" name="account" placeholder="電子郵件or電話:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <!-- 密碼欄位 -->
+                <div style="margin-bottom: 15px;">
+                <label for="password"></label><br>
+                <input type="password" id="password" name="password" placeholder="密碼:"
+                    style="width: 300pt; padding: 32px; border-radius: 40pt; font-size: 13pt;">
+                </div>
+
+                <button type="submit" style="position: relative; padding: 8px 16px; width: 75pt; font-size: 13pt; border-radius: 5pt; display: block; margin: 0 auto; top: 15pt;">Enter</button>
+            </form>
+        </div>
+        
+        <div style="
+            position: absolute; 
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            ">
+            <a href="forget_pw.html" style="color: black;">忘記密碼?</a>
+            <br><br>
+            <a href="create.html" style="color: black;">沒有帳號嗎?現在創建一個!</a>
+        </div>
+
+        <script>            
+            function validateForm() {
+                const account = document.getElementById("account").value.trim();
+                const password = document.getElementById("password").value.trim();
+                if (!account || !password) {
+                alert("請輸入帳號和密碼！");
+                return false;
+                }
+                window.location.href = "homepage with login.html"; 
+                return false;
+            }
+        </script>
+
+    </body>
+</html>
