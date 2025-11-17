@@ -1,35 +1,555 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1141_資安技術與管理_期中展示</title>
-</head>
-<script type="text/javascript">
-    window.onload=function(){
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>1141_資安技術與管理_期中展示（動畫 MITM）</title>
+<style>
+    /* ---------- 基本樣式（保留你的原始風格） ---------- */
+    body { font-family: Arial, "微軟正黑體", sans-serif; padding: 20px; background:#fff; color:#111; }
+    #title { text-align:center; }
+    ul { text-align:center; padding:0; margin:0; }
+    li {
+        color: black;
+        font-weight: bold;
+        display: inline-block;
+        list-style-type: none;
+        margin: 30pt 60pt 0pt 60pt;
+        font-size: 18pt;
+        transition: 1.2s;
+        background-color: bisque;
+        cursor: pointer;
+        padding: 8pt 14pt;
+        border-radius: 8px;
+    }
+    li:hover { transform: scale(1.2); }
 
+    .page { margin-top: 28px; display:none; padding:18px; border:2px solid #ddd; border-radius:12px; width:95%; margin-left:auto; margin-right:auto; background:#fafafa; }
+    .title2 { font-size:22px; font-weight:bold; text-align:center; margin-bottom:12px; }
+
+    /* 三欄（Alice - MITM - Bob）區域 */
+    .threecol { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; position:relative; padding:10px; }
+    .col { width:32%; border:1px solid #bbb; border-radius:8px; padding:12px; background:#fff; min-height:200px; box-sizing:border-box; position:relative; }
+    .col h3 { margin-top:0; }
+    textarea { width:100%; height:80px; box-sizing:border-box; font-size:14px; padding:8px; }
+    button { padding:8px 12px; margin-top:8px; font-size:14px; cursor:pointer; }
+    .result { background:#f7f7f7; padding:8px; min-height:50px; border-radius:6px; white-space:pre-wrap; }
+
+    /* 訊息方塊（動畫使用） */
+    .msgbox {
+        position:absolute;
+        left:0;
+        top:40%;
+        transform:translateY(-50%);
+        background:#fff3b0;
+        padding:8px 12px;
+        border-radius:8px;
+        border:1px solid #c4a83a;
+        box-shadow:0 4px 8px rgba(0,0,0,0.08);
+        z-index:50;
+        pointer-events:none;
     }
-    function $(id) {
-        return document.getElementById(id);
+
+    /* 從 Alice 到 MITM（動畫） */
+    .move-to-mitm {
+        animation: toMITM 800ms linear forwards;
     }
-</script>
-<style type="text/css">
-    #title {
-        text-align: center;
+    @keyframes toMITM {
+        from { left: 2%; } 
+        to { left: 34%; } /* 中間位置（調整以匹配三欄） */
     }
-    #menu {
-        text-align: center;
+
+    /* 從 MITM 到 Bob（動畫） */
+    .move-to-bob {
+        animation: toBob 800ms linear forwards;
+    }
+    @keyframes toBob {
+        from { left: 34%; }
+        to { left: 66%; }
+    }
+
+    /* 小提示 */
+    .hint { font-size:13px; color:#666; margin-top:6px; }
+    .mitm-edit { margin-top:8px; }
+    .small { font-size:13px; color:#444; }
+
+    /* 讓按鈕顯眼 */
+    .primary { background:#2b7ae4; color:white; border:none; border-radius:6px; }
+    .danger { background:#e04b4b; color:white; border:none; border-radius:6px; }
+
+    /* 響應式處理 */
+    @media (max-width:900px) {
+        .threecol { flex-direction:column; }
+        .msgbox { position:relative; left:auto; margin:10px 0; transform:none; }
     }
 </style>
+</head>
 <body>
-    <div id="title">
-        <h1>資安技術與管理-期中展示</h1>
+
+<div id="title">
+    <h1>資安技術與管理 - 期中展示（動畫 MITM）</h1>
+</div>
+
+<div id="menu">
+    <ul>
+        <li id="btn_AES">AES 實作展示</li>
+        <li id="btn_RSA">RSA 實作展示</li>
+        <li id="btn_DSC">數位簽章 實作展示</li>
+    </ul>
+</div>
+
+<!-- ================= AES Page ================= -->
+<div id="page_AES" class="page">
+    <div class="title2">AES 加密展示（動畫）</div>
+
+    <div class="threecol" id="aes_area">
+        <!-- Alice -->
+        <div class="col" id="aes_alice">
+            <h3>Alice（發送者）</h3>
+            <textarea id="aes_in">Hello Bob</textarea>
+            <div class="hint">按下「傳送」後，訊息會飛到中間人並停留，您可在中間人編輯內容再 Forward 給 Bob。</div>
+            <label class="small"><input type="checkbox" id="auto_forward_aes"> 若中間人不操作，1 秒後自動 Forward</label><br>
+            <button class="primary" onclick="startAESFlow()">傳送（Animate → MITM）</button>
+        </div>
+
+        <!-- MITM -->
+        <div class="col" id="aes_mitm">
+            <h3>中間人（攔截者）</h3>
+            <div class="small">攔截到的原始訊息：</div>
+            <div id="aes_mitm_view" class="result">尚未收到</div>
+
+            <div class="small mitm-edit" style="margin-top:8px;">中間人修改後的訊息（輸入後按 Forward）：</div>
+            <textarea id="aes_mitm_edit" placeholder="若要修改訊息請在此輸入..."></textarea>
+            <button onclick="forwardAES()" class="primary">Forward 給 Bob</button>
+            <div class="hint">若不修改，請直接按 Forward 或勾選自動 Forward。</div>
+        </div>
+
+        <!-- Bob -->
+        <div class="col" id="aes_bob">
+            <h3>Bob（接收者）</h3>
+            <div id="aes_bob_view" class="result">等待中...</div>
+            <div style="margin-top:8px;">
+                <button onclick="clearAES()" class="danger">清除</button>
+            </div>
+        </div>
+
+        <!-- 動畫訊息方塊 -->
+        <!-- 由 JS 動態產生 .msgbox -->
     </div>
-    <div id="menu">
-        <ul style="list-style-type: none;">
-            <li>AES 實作展示</li>
-            <li>RSA 實作展示</li>
-        </ul>
+</div>
+
+<!-- ================= RSA Page ================= -->
+<div id="page_RSA" class="page">
+    <div class="title2">RSA 混合式加密展示（動畫）</div>
+
+    <div class="threecol" id="rsa_area">
+        <div class="col" id="rsa_alice">
+            <h3>Alice（發送者）</h3>
+            <textarea id="rsa_in">Hello Bob RSA</textarea>
+            <div class="hint">傳送時會先到中間人，編輯後 Forward，最後由 Bob 顯示最終明文與密文資訊。</div>
+            <label class="small"><input type="checkbox" id="auto_forward_rsa"> 若中間人不操作，1 秒後自動 Forward</label><br>
+            <button class="primary" onclick="startRSAFlow()">傳送（Animate → MITM）</button>
+        </div>
+
+        <div class="col" id="rsa_mitm">
+            <h3>中間人（攔截者）</h3>
+            <div class="small">攔截到的原始訊息：</div>
+            <div id="rsa_mitm_view" class="result">尚未收到</div>
+
+            <div class="small mitm-edit" style="margin-top:8px;">中間人修改後的訊息（輸入後按 Forward）：</div>
+            <textarea id="rsa_mitm_edit" placeholder="若要修改訊息請在此輸入..."></textarea>
+            <button onclick="forwardRSA()" class="primary">Forward 給 Bob</button>
+            <div class="hint">若不修改，請直接按 Forward 或勾選自動 Forward。</div>
+        </div>
+
+        <div class="col" id="rsa_bob">
+            <h3>Bob（接收者）</h3>
+            <div id="rsa_bob_view" class="result">等待中...</div>
+            <div style="margin-top:8px;"><button onclick="clearRSA()" class="danger">清除</button></div>
+        </div>
     </div>
+</div>
+
+<!-- ================= DSC Page ================= -->
+<div id="page_DSC" class="page">
+    <div class="title2">數位簽章（RSA-PSS）展示（動畫）</div>
+
+    <div class="threecol" id="dsc_area">
+        <div class="col" id="dsc_alice">
+            <h3>Alice（發送者）</h3>
+            <textarea id="dsc_in">Hello Bob DSC</textarea>
+            <div class="hint">Alice 會對原始訊息簽章，若中間人修改內容，Bob 驗證會失敗。</div>
+            <label class="small"><input type="checkbox" id="auto_forward_dsc"> 若中間人不操作，1 秒後自動 Forward</label><br>
+            <button class="primary" onclick="startDSCFlow()">傳送（Animate → MITM）</button>
+        </div>
+
+        <div class="col" id="dsc_mitm">
+            <h3>中間人（攔截者）</h3>
+            <div class="small">攔截到的原始訊息：</div>
+            <div id="dsc_mitm_view" class="result">尚未收到</div>
+
+            <div class="small mitm-edit" style="margin-top:8px;">中間人修改後的訊息（輸入後按 Forward）：</div>
+            <textarea id="dsc_mitm_edit" placeholder="若要修改訊息請在此輸入..."></textarea>
+            <button onclick="forwardDSC()" class="primary">Forward 給 Bob</button>
+            <div class="hint">若不修改，請直接按 Forward 或勾選自動 Forward。</div>
+        </div>
+
+        <div class="col" id="dsc_bob">
+            <h3>Bob（接收者）</h3>
+            <div id="dsc_bob_view" class="result">等待中...</div>
+            <div style="margin-top:8px;"><button onclick="clearDSC()" class="danger">清除</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ================== 頁面切換（保留 menu） ================== */
+function hideAllPages() {
+    document.getElementById("page_AES").style.display = "none";
+    document.getElementById("page_RSA").style.display = "none";
+    document.getElementById("page_DSC").style.display = "none";
+}
+document.getElementById("btn_AES").onclick = () => { hideAllPages(); document.getElementById("page_AES").style.display="block"; };
+document.getElementById("btn_RSA").onclick = () => { hideAllPages(); document.getElementById("page_RSA").style.display="block"; };
+document.getElementById("btn_DSC").onclick = () => { hideAllPages(); document.getElementById("page_DSC").style.display="block"; };
+
+// 預設顯示 AES
+hideAllPages();
+document.getElementById("page_AES").style.display = "block";
+
+
+/* ================== Helper: 建立動畫訊息元素 ================== */
+function createMsgElement(text, area) {
+    // area: container element (threecol)
+    const msg = document.createElement("div");
+    msg.className = "msgbox";
+    msg.textContent = text;
+    area.appendChild(msg);
+    return msg;
+}
+
+/* ================== AES 流程 ================== */
+/* 我們設計的流程：
+   1) 使用者在 Alice 輸入明文，按「傳送」 -> 建立 msgbox 往 MITM 飛（CSS 動畫 class move-to-mitm）
+   2) 動畫結束觸發 animationend -> 在 MITM area 顯示攔截訊息 (aes_mitm_view)，並顯示 mitm 編輯區
+   3) 使用者在中間人編輯後按 Forward -> msgbox 加上 class move-to-bob 繼續飛向 Bob
+   4) 到 Bob 後執行 AES 加密模擬（這裡為教學，我們讓 Bob 最終看到修改後的明文與 AES ciphertext）
+*/
+
+let aes_current_msgbox = null;
+let aes_current_text = "";
+let aes_shared_key = null; // 為了示範，Alice 和 Bob 共享 key（在真實情況需安全交換）
+
+async function startAESFlow() {
+    // 清除之前內容
+    document.getElementById("aes_bob_view").textContent = "等待中...";
+    document.getElementById("aes_mitm_view").textContent = "尚未收到";
+    document.getElementById("aes_mitm_edit").value = "";
+
+    const text = document.getElementById("aes_in").value || "";
+    aes_current_text = text;
+
+    const area = document.getElementById("aes_area");
+    if (aes_current_msgbox) { aes_current_msgbox.remove(); aes_current_msgbox=null; }
+
+    const msg = createMsgElement(text, area);
+    aes_current_msgbox = msg;
+    // 開始動畫移動到 MITM
+    msg.classList.add("move-to-mitm");
+
+    // 當到達 MITM（第一段動畫結束）
+    function onAnimToMITM(e) {
+        if (e.animationName !== 'toMITM') return;
+        msg.removeEventListener('animationend', onAnimToMITM);
+
+        // 顯示攔截到的原始訊息
+        document.getElementById("aes_mitm_view").textContent = aes_current_text;
+
+        // 如果勾選自動 forward，設定 timeout 自動按 forward
+        const auto = document.getElementById("auto_forward_aes").checked;
+        if (auto) {
+            // 1 秒後自動 forward（若使用者還沒手動按）
+            setTimeout(() => {
+                // 若 msg 還在 MITM（尚未被 forward），就 forward
+                if (msg && msg.classList.contains("move-to-mitm")) {
+                    forwardAES();
+                }
+            }, 1000);
+        }
+    }
+    msg.addEventListener('animationend', onAnimToMITM);
+}
+
+async function forwardAES() {
+    const area = document.getElementById("aes_area");
+    if (!aes_current_msgbox) return;
+    // 從中間人編輯取值；若為空則使用原始訊息
+    const edited = document.getElementById("aes_mitm_edit").value;
+    const finalText = edited && edited.trim().length>0 ? edited : aes_current_text;
+
+    // 更新 msgbox 顯示（顯示修改後內容）
+    aes_current_msgbox.textContent = finalText;
+
+    // 將 MITM 視窗也更新
+    document.getElementById("aes_mitm_view").textContent = aes_current_text + (edited? ("\n\n中間人已修改為：\n" + finalText) : "\n\n中間人未修改");
+
+    // 讓 msgbox 往 Bob 飛
+    // 移除原本的 to-mitm class，並加上 move-to-bob
+    aes_current_msgbox.classList.remove("move-to-mitm");
+    // trigger reflow to restart animation correctly
+    void aes_current_msgbox.offsetWidth;
+    aes_current_msgbox.classList.add("move-to-bob");
+
+    // 當到達 Bob（第二段動畫結束）
+    aes_current_msgbox.addEventListener('animationend', async function onToBob(e) {
+        if (e.animationName !== 'toBob') return;
+        aes_current_msgbox.removeEventListener('animationend', onToBob);
+
+        // 教學：產生 AES key（Alice/Bob 共享），加密並顯示 ciphertext 以及 Bob 最終看到的明文
+        const enc = new TextEncoder().encode(finalText);
+
+        // 為示範：產生一把 symmetric key，並讓 Bob 用它來解密 (模擬共享)
+        aes_shared_key = await crypto.subtle.generateKey({ name:"AES-GCM", length:256 }, true, ["encrypt","decrypt"]);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const ct = await crypto.subtle.encrypt({ name:"AES-GCM", iv }, aes_shared_key, enc);
+
+        const ct_b64 = btoa(String.fromCharCode(...new Uint8Array(ct)));
+        const iv_b64 = btoa(String.fromCharCode(...iv));
+
+        // Bob 顯示（為了教學，我們也示範 Bob 用 key 解密得到的明文）
+        const decrypted = await crypto.subtle.decrypt({ name:"AES-GCM", iv }, aes_shared_key, ct)
+            .then(buf => new TextDecoder().decode(buf))
+            .catch(()=>"[解密失敗]");
+
+        document.getElementById("aes_bob_view").textContent =
+            "（Bob 最終看到的明文）\n" + decrypted + "\n\n" +
+            "（展示 AES ciphertext）\nNonce(Base64): " + iv_b64 + "\nCiphertext(Base64): " + ct_b64;
+
+        // 移除 msgbox（或保留）
+        setTimeout(()=> { if (aes_current_msgbox) { aes_current_msgbox.remove(); aes_current_msgbox=null; } }, 800);
+    });
+}
+
+/* 清除 */
+function clearAES() {
+    document.getElementById("aes_bob_view").textContent = "等待中...";
+    document.getElementById("aes_mitm_view").textContent = "尚未收到";
+    document.getElementById("aes_mitm_edit").value = "";
+    if (aes_current_msgbox) { aes_current_msgbox.remove(); aes_current_msgbox=null; }
+}
+
+/* ================== RSA 混合式（流程同上） ================== */
+/* 流程：
+   1) Alice 輸入明文，Animate → MITM
+   2) MITM 可以修改明文
+   3) Forward 給 Bob：Alice（或 MITM）會用 AES 加密訊息，且 AES key 用 RSA-OAEP 加密（Bob 有私鑰）
+   4) Bob 用私鑰解 AES key，然後解密出明文，顯示最終內容與 ciphertext
+*/
+
+// 產生 RSA keypair（Bob 的）
+let rsa_keypair = null;
+(async function initRSA() {
+    rsa_keypair = await crypto.subtle.generateKey(
+        { name:"RSA-OAEP", modulusLength:2048, publicExponent: new Uint8Array([1,0,1]), hash:"SHA-256" },
+        true,
+        ["encrypt","decrypt"]
+    );
+})();
+
+let rsa_current_msgbox = null;
+let rsa_current_text = "";
+
+function startRSAFlow() {
+    document.getElementById("rsa_bob_view").textContent = "等待中...";
+    document.getElementById("rsa_mitm_view").textContent = "尚未收到";
+    document.getElementById("rsa_mitm_edit").value = "";
+
+    const text = document.getElementById("rsa_in").value || "";
+    rsa_current_text = text;
+    const area = document.getElementById("rsa_area");
+
+    if (rsa_current_msgbox) { rsa_current_msgbox.remove(); rsa_current_msgbox=null; }
+    const msg = createMsgElement(text, area);
+    rsa_current_msgbox = msg;
+    msg.classList.add("move-to-mitm");
+
+    function onToMITM(e) {
+        if (e.animationName !== 'toMITM') return;
+        msg.removeEventListener('animationend', onToMITM);
+        document.getElementById("rsa_mitm_view").textContent = rsa_current_text;
+
+        const auto = document.getElementById("auto_forward_rsa").checked;
+        if (auto) {
+            setTimeout(()=> {
+                if (msg && msg.classList.contains("move-to-mitm")) forwardRSA();
+            }, 3000);
+        }
+    }
+    msg.addEventListener('animationend', onToMITM);
+}
+
+async function forwardRSA() {
+    if (!rsa_current_msgbox) return;
+    const edited = document.getElementById("rsa_mitm_edit").value;
+    const finalText = edited && edited.trim().length>0 ? edited : rsa_current_text;
+
+    rsa_current_msgbox.textContent = finalText;
+    document.getElementById("rsa_mitm_view").textContent = rsa_current_text + (edited? ("\n\n中間人已修改為：\n" + finalText) : "\n\n中間人未修改");
+
+    // animate to bob
+    rsa_current_msgbox.classList.remove("move-to-mitm");
+    void rsa_current_msgbox.offsetWidth;
+    rsa_current_msgbox.classList.add("move-to-bob");
+
+    rsa_current_msgbox.addEventListener('animationend', async function onToBob(e) {
+        if (e.animationName !== 'toBob') return;
+        rsa_current_msgbox.removeEventListener('animationend', onToBob);
+
+        // Hybrid encryption: 產生 AES key，AES 加密 finalText，然後用 RSA pubkey 加密 AES key
+        // Bob 用私鑰解出 AES key，再解密 ciphertext 得到最終明文（展示）
+        try {
+            // AES key
+            const aesKey = await crypto.subtle.generateKey({ name:"AES-GCM", length:256 }, true, ["encrypt","decrypt"]);
+            const rawAES = await crypto.subtle.exportKey("raw", aesKey);
+
+            // RSA-OAEP 加密 AES key (使用 Bob publicKey)
+            const encAESKey = await crypto.subtle.encrypt({ name:"RSA-OAEP" }, rsa_keypair.publicKey, rawAES);
+
+            // AES-GCM 加密訊息
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ct = await crypto.subtle.encrypt({ name:"AES-GCM", iv }, aesKey, new TextEncoder().encode(finalText));
+
+            // 模擬 Bob：先用私鑰解密 AES key，然後用該 key 解密 ciphertext
+            const decryptedRawAES = await crypto.subtle.decrypt({ name:"RSA-OAEP" }, rsa_keypair.privateKey, encAESKey);
+            const bobAESKey = await crypto.subtle.importKey("raw", decryptedRawAES, { name:"AES-GCM" }, true, ["decrypt"]);
+
+            const recovered = await crypto.subtle.decrypt({ name:"AES-GCM", iv }, bobAESKey, ct)
+                .then(buf => new TextDecoder().decode(buf))
+                .catch(()=>"[解密失敗]");
+
+            document.getElementById("rsa_bob_view").textContent =
+                "（Bob 最終看到的明文）\n" + recovered + "\n\n" +
+                "（展示）Encrypted AES Key(Base64): " + btoa(String.fromCharCode(...new Uint8Array(encAESKey))) + "\n" +
+                "IV(Base64): " + btoa(String.fromCharCode(...iv)) + "\n" +
+                "Ciphertext(Base64): " + btoa(String.fromCharCode(...new Uint8Array(ct)));
+
+        } catch (err) {
+            document.getElementById("rsa_bob_view").textContent = "錯誤：" + err;
+        }
+
+        setTimeout(()=> { if (rsa_current_msgbox) { rsa_current_msgbox.remove(); rsa_current_msgbox=null; } }, 800);
+    });
+}
+
+function clearRSA() {
+    document.getElementById("rsa_bob_view").textContent = "等待中...";
+    document.getElementById("rsa_mitm_view").textContent = "尚未收到";
+    document.getElementById("rsa_mitm_edit").value = "";
+    if (rsa_current_msgbox) { rsa_current_msgbox.remove(); rsa_current_msgbox=null; }
+}
+
+/* ================== DSC（簽章）流程 ================== */
+/* 流程：
+   1) Alice 對原始訊息簽章（RSA-PSS），並把訊息原文送出（Animate → MITM）
+   2) MITM 能看到原始訊息並可修改（但簽章不會被重新簽）
+   3) Forward 給 Bob：Bob 用 Alice 的公鑰驗證簽章對收到的訊息是否有效
+      - 若 MITM 未修改：驗證成功
+      - 若 MITM 修改：驗證失敗
+*/
+
+// 產生 RSA-PSS keypair（Alice 的簽章金鑰）
+let dsc_keypair = null;
+(async function initDSC() {
+    dsc_keypair = await crypto.subtle.generateKey(
+        { name:"RSA-PSS", modulusLength:2048, publicExponent:new Uint8Array([1,0,1]), hash:"SHA-256" },
+        true,
+        ["sign","verify"]
+    );
+})();
+
+let dsc_current_msgbox = null;
+let dsc_current_text = "";
+let dsc_current_signature = null;
+
+async function startDSCFlow() {
+    document.getElementById("dsc_bob_view").textContent = "等待中...";
+    document.getElementById("dsc_mitm_view").textContent = "尚未收到";
+    document.getElementById("dsc_mitm_edit").value = "";
+
+    const text = document.getElementById("dsc_in").value || "";
+    dsc_current_text = text;
+
+    // Alice 先對原始訊息簽章（簽章會跟訊息一起送出）
+    const encoded = new TextEncoder().encode(dsc_current_text);
+    dsc_current_signature = await crypto.subtle.sign({ name:"RSA-PSS", saltLength:32 }, dsc_keypair.privateKey, encoded);
+
+    const area = document.getElementById("dsc_area");
+    if (dsc_current_msgbox) { dsc_current_msgbox.remove(); dsc_current_msgbox=null; }
+    const msg = createMsgElement(dsc_current_text, area);
+    dsc_current_msgbox = msg;
+    msg.classList.add("move-to-mitm");
+
+    function onToMITM(e) {
+        if (e.animationName !== 'toMITM') return;
+        msg.removeEventListener('animationend', onToMITM);
+        document.getElementById("dsc_mitm_view").textContent = dsc_current_text;
+
+        const auto = document.getElementById("auto_forward_dsc").checked;
+        if (auto) {
+            setTimeout(()=> {
+                if (msg && msg.classList.contains("move-to-mitm")) forwardDSC();
+            }, 3000);
+        }
+    }
+    msg.addEventListener('animationend', onToMITM);
+}
+
+async function forwardDSC() {
+    if (!dsc_current_msgbox) return;
+    const edited = document.getElementById("dsc_mitm_edit").value;
+    const finalText = edited && edited.trim().length>0 ? edited : dsc_current_text;
+
+    dsc_current_msgbox.textContent = finalText;
+    document.getElementById("dsc_mitm_view").textContent = dsc_current_text + (edited? ("\n\n中間人已修改為：\n" + finalText) : "\n\n中間人未修改");
+
+    // animate to bob
+    dsc_current_msgbox.classList.remove("move-to-mitm");
+    void dsc_current_msgbox.offsetWidth;
+    dsc_current_msgbox.classList.add("move-to-bob");
+
+    dsc_current_msgbox.addEventListener('animationend', async function onToBob(e) {
+        if (e.animationName !== 'toBob') return;
+        dsc_current_msgbox.removeEventListener('animationend', onToBob);
+
+        // Bob 嘗試驗證簽章（簽章是 Alice 對原始訊息簽的）
+        // 如果 MITM 修改 finalText，則驗證應該失敗
+        const verified = await crypto.subtle.verify(
+            { name:"RSA-PSS", saltLength:32 },
+            dsc_keypair.publicKey,
+            dsc_current_signature,
+            new TextEncoder().encode(finalText)
+        ).catch(()=>false);
+
+        document.getElementById("dsc_bob_view").textContent =
+            "（Bob 收到的訊息）\n" + finalText + "\n\n" +
+            "簽章(Hex):\n" + [...new Uint8Array(dsc_current_signature)].map(b=>b.toString(16).padStart(2,'0')).join("") +
+            "\n\n驗證結果： " + (verified ? "✅ 正確 (未被改動)" : "❌ 驗證失敗（訊息遭竄改）");
+
+        setTimeout(()=> { if (dsc_current_msgbox) { dsc_current_msgbox.remove(); dsc_current_msgbox=null; } }, 800);
+    });
+}
+
+function clearDSC() {
+    document.getElementById("dsc_bob_view").textContent = "等待中...";
+    document.getElementById("dsc_mitm_view").textContent = "尚未收到";
+    document.getElementById("dsc_mitm_edit").value = "";
+    if (dsc_current_msgbox) { dsc_current_msgbox.remove(); dsc_current_msgbox=null; }
+}
+
+/* ================== 小提醒：支援鍵盤 Enter 觸發（可選） ================== */
+/* 這裡不額外綁太多鍵盤事件，讓操作以按鈕為主以避免誤觸。 */
+
+/* ================ 完成 ================ */
+</script>
 </body>
 </html>
